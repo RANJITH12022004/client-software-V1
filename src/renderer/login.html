@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLE Desktop Client — Sign In</title>
+    <link rel="stylesheet" href="./css/tokens.css">
+    <link rel="stylesheet" href="./css/app.css">
+  </head>
+  <body>
+    <div class="shell">
+      <header class="shell-header">
+        <div class="brand">
+          <img src="../../assets/rle_logo.png" alt="Raise Lab Equipment">
+          <div class="brand-text">
+            <span class="brand-label">RLE Desktop Client</span>
+            <span class="brand-title">Sign In</span>
+          </div>
+        </div>
+        <nav class="flow-steps" aria-label="Setup progress">
+          <span class="flow-step done"><span class="flow-step-num">✓</span> Machines</span>
+          <span class="flow-sep">›</span>
+          <span class="flow-step active"><span class="flow-step-num">2</span> Sign in</span>
+          <span class="flow-sep">›</span>
+          <span class="flow-step"><span class="flow-step-num">3</span> Workspace</span>
+        </nav>
+        <a class="link-btn" href="./index.html">← Back</a>
+      </header>
+
+      <div class="shell-body shell-body--center">
+        <div class="login-card">
+          <div class="brand">
+            <img src="../../assets/rle_logo.png" alt="Raise Lab Equipment">
+          </div>
+
+          <div id="active-device-summary" class="machine-banner">
+            <div>
+              <div class="machine-name" id="login-machine-name">Loading…</div>
+              <div class="machine-ip" id="login-machine-ip"></div>
+            </div>
+            <span class="status-dot online">Online</span>
+          </div>
+
+          <form id="login-form" class="stack">
+            <label>
+              Username
+              <input id="login-username" type="text" name="username" autocomplete="username" required>
+            </label>
+            <label>
+              Password
+              <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+            </label>
+            <button type="submit" class="lg">Sign In</button>
+          </form>
+
+          <div id="login-status" class="toast" role="status" style="margin-top:16px"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./js/shared/apiBridge.js"></script>
+    <script src="./js/login.js"></script>
+  </body>
+</html>

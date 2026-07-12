@@ -1,0 +1,24 @@
+{
+  "name": "rle-desktop-client",
+  "version": "0.1.0",
+  "description": "Standalone Electron desktop client for connecting to an RLE kiosk over HTTP and WebSocket.",
+  "main": "src/main/main.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "electron-store": "latest",
+    "keytar": "latest",
+    "ws": "latest"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "latest"
+  }
+}

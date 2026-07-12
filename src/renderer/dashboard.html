@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLE Desktop Client — Workspace</title>
+    <link rel="stylesheet" href="./css/tokens.css">
+    <link rel="stylesheet" href="./css/app.css">
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="app-sidebar">
+        <div class="brand">
+          <img src="../../assets/rle_logo.png" alt="Raise Lab Equipment">
+          <div class="brand-text">
+            <span class="brand-label">RLE</span>
+            <span class="brand-title">Workspace</span>
+          </div>
+        </div>
+
+        <nav aria-label="Main navigation">
+          <ul class="nav-list">
+            <li><button type="button" class="nav-item active" data-tab="home">Overview</button></li>
+            <li><button type="button" class="nav-item" data-tab="reports" id="nav-reports">Reports</button></li>
+            <li><button type="button" class="nav-item" data-tab="audit" id="nav-audit">Audit Trails</button></li>
+            <li><button type="button" class="nav-item hidden" data-tab="profiles" id="nav-profiles">Profiles</button></li>
+            <li><button type="button" class="nav-item hidden" data-tab="recipes" id="nav-recipes">Recipes</button></li>
+            <li><button type="button" class="nav-item" data-tab="settings">Settings</button></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="app-main">
+        <header class="app-main-header">
+          <div>
+            <h1 id="dashboard-title">Overview</h1>
+            <p class="subtle" id="dashboard-subtitle">Machine sync and exports</p>
+          </div>
+          <div class="toolbar">
+            <span id="active-device-badge" class="badge">No machine</span>
+            <button type="button" class="secondary" id="switch-device-btn">Switch Machine</button>
+            <button type="button" class="ghost" id="logout-btn">Logout</button>
+          </div>
+        </header>
+
+        <div class="app-main-content">
+          <div id="dashboard-status" class="toast" role="status"></div>
+
+          <!-- Overview -->
+          <section id="tab-home" class="tab-panel active">
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="label">Machine</div>
+                <div class="value small" id="stat-machine">—</div>
+              </div>
+              <div class="stat-card">
+                <div class="label">Saved Reports</div>
+                <div class="value" id="stat-reports">—</div>
+              </div>
+              <div class="stat-card">
+                <div class="label">Last Sync</div>
+                <div class="value small" id="stat-last-sync">—</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Save Folder</h2>
+                  <p>Reports and audit PDFs are saved here on your computer.</p>
+                </div>
+                <button type="button" class="secondary" id="change-save-folder-btn">Change</button>
+              </div>
+              <div id="save-path-display" class="folder-chip selected">Not set</div>
+              <p id="save-path-hint" class="subtle" style="margin-top:8px">Files save under <strong>{nickname}/reports</strong> and <strong>{nickname}/audit</strong></p>
+              <div id="sync-state-summary" class="subtle" style="margin-top:12px"></div>
+              <div class="toolbar" style="margin-top:16px">
+                <button type="button" id="sync-all-btn">Sync New Files</button>
+                <button type="button" class="secondary" id="health-check-btn">Check Connection</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Reports -->
+          <section id="tab-reports" class="tab-panel">
+            <div id="reports-denied" class="panel permission-denied hidden">
+              <h2>Reports</h2>
+              <p class="muted">You do not have permission to view or download reports on this machine.</p>
+            </div>
+            <div id="reports-content" class="panel">
+              <div class="content-toolbar">
+                <div>
+                  <h2>Reports</h2>
+                  <p class="muted">Preview and download reports from the machine.</p>
+                </div>
+                <div class="toolbar">
+                  <button type="button" class="secondary" id="reports-refresh-btn">Refresh</button>
+                  <button type="button" id="reports-export-selected-btn" disabled>Download Selected</button>
+                  <button type="button" class="secondary" id="reports-export-zip-btn" disabled>Download ZIP</button>
+                </div>
+              </div>
+
+              <div class="filter-row">
+                <label>
+                  Type
+                  <select id="reports-filter-type">
+                    <option value="all">All</option>
+                    <option value="test">Test</option>
+                    <option value="validation">Validation</option>
+                  </select>
+                </label>
+                <button type="button" class="secondary" id="reports-apply-filter-btn">Apply</button>
+              </div>
+
+              <div class="data-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="col-check"><input type="checkbox" id="reports-select-all" aria-label="Select all"></th>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Created</th>
+                      <th>Status</th>
+                      <th class="col-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reports-table-body">
+                    <tr><td colspan="7" class="empty-state">Loading…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Audit -->
+          <section id="tab-audit" class="tab-panel">
+            <div id="audit-denied" class="panel permission-denied hidden">
+              <h2>Audit Trails</h2>
+              <p class="muted">You do not have permission to view or export audit trails on this machine.</p>
+            </div>
+            <div id="audit-content" class="panel">
+              <div class="content-toolbar">
+                <div>
+                  <h2>Audit Trails</h2>
+                  <p class="muted">Browse and export audit entries.</p>
+                </div>
+                <div class="toolbar">
+                  <button type="button" class="secondary" id="audit-refresh-btn">Refresh</button>
+                  <button type="button" id="audit-export-btn">Export PDF</button>
+                </div>
+              </div>
+
+              <div class="filter-row">
+                <label>User <input id="audit-filter-user" type="text" placeholder="Any"></label>
+                <label>Role <input id="audit-filter-role" type="text" placeholder="Any"></label>
+                <label>Action <input id="audit-filter-action" type="text" placeholder="Any"></label>
+                <label>From <input id="audit-filter-from" type="date"></label>
+                <label>To <input id="audit-filter-to" type="date"></label>
+                <button type="button" class="secondary" id="audit-apply-filter-btn">Apply</button>
+              </div>
+
+              <div class="data-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date &amp; Time</th>
+                      <th>User</th>
+                      <th>Role</th>
+                      <th>Action</th>
+                      <th>Details</th>
+                      <th class="col-actions"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-table-body">
+                    <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Profiles -->
+          <section id="tab-profiles" class="tab-panel">
+            <div class="panel">
+              <div class="content-toolbar">
+                <div>
+                  <h2>Profiles</h2>
+                  <p class="muted">Manage user accounts and permission cards on the connected machine.</p>
+                </div>
+                <div class="toolbar">
+                  <button type="button" class="secondary" id="profiles-refresh-btn">Refresh</button>
+                  <button type="button" id="profiles-add-btn">Add User</button>
+                </div>
+              </div>
+              <div class="data-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Username</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th class="col-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="profiles-table-body">
+                    <tr><td colspan="5" class="empty-state">Loading…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recipes (embedded kiosk UI) -->
+          <section id="tab-recipes" class="tab-panel">
+            <div class="panel recipe-embed-panel">
+              <div class="content-toolbar">
+                <div>
+                  <h2>Recipes</h2>
+                  <p class="muted" id="recipes-embed-status">Loading recipe management from machine…</p>
+                </div>
+                <div class="toolbar">
+                  <button type="button" class="secondary" id="recipes-refresh-btn">Refresh</button>
+                </div>
+              </div>
+              <webview id="recipes-webview" class="recipe-webview" partition="persist:recipes" allowpopups></webview>
+            </div>
+          </section>
+
+          <!-- Settings -->
+          <section id="tab-settings" class="tab-panel">
+            <div class="panel" style="max-width:480px">
+              <h2>Auto Backup</h2>
+              <p class="muted" style="margin:8px 0 20px">Schedule automatic download of new reports and audit files.</p>
+
+              <form id="auto-backup-form" class="stack">
+                <label class="toggle-row">
+                  <input type="checkbox" id="auto-backup-enabled">
+                  <span>Enable auto backup</span>
+                </label>
+                <label>
+                  Frequency
+                  <select id="auto-backup-frequency">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </label>
+                <label>
+                  Time
+                  <input id="auto-backup-time" type="time" value="09:00" required>
+                </label>
+                <div id="weekly-day-wrap" class="schedule-frequency-field" hidden>
+                  <label>
+                    Day of week
+                    <select id="auto-backup-day-of-week">
+                      <option value="0">Sunday</option>
+                      <option value="1">Monday</option>
+                      <option value="2">Tuesday</option>
+                      <option value="3">Wednesday</option>
+                      <option value="4">Thursday</option>
+                      <option value="5">Friday</option>
+                      <option value="6">Saturday</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="monthly-day-wrap" class="schedule-frequency-field" hidden>
+                  <label>
+                    Day of month (1–28)
+                    <input id="auto-backup-day-of-month" type="number" min="1" max="28" value="1">
+                  </label>
+                  <p id="monthly-day-hint" class="subtle schedule-hint">Runs on this day each month (e.g. 1 = 1st).</p>
+                </div>
+                <button type="submit">Save Schedule</button>
+              </form>
+              <div id="auto-backup-status" class="toast" style="margin-top:16px"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile edit modal -->
+    <div id="profile-edit-modal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-panel wide">
+        <div class="modal-header">
+          <h2 id="profile-edit-title">Edit Profile</h2>
+          <button type="button" class="ghost" id="profile-edit-close-btn">Close</button>
+        </div>
+        <form id="profile-edit-form" class="stack">
+          <input type="hidden" id="profile-edit-id">
+          <label>Name <input id="profile-edit-name" type="text" required></label>
+          <label>Username <input id="profile-edit-username" type="text" required></label>
+          <label>Password <input id="profile-edit-password" type="password" placeholder="Leave blank to keep"></label>
+          <label>Role
+            <select id="profile-edit-role">
+              <option value="admin">Admin</option>
+              <option value="supervisor">Supervisor</option>
+              <option value="qa">QA</option>
+              <option value="operator">Operator</option>
+            </select>
+          </label>
+          <fieldset id="profile-edit-cards-wrap">
+            <legend>Permission cards</legend>
+            <div id="profile-edit-cards" class="checkbox-grid"></div>
+          </fieldset>
+          <div class="modal-footer">
+            <button type="submit">Save</button>
+            <button type="button" class="secondary" id="profile-edit-cancel-btn">Cancel</button>
+          </div>
+        </form>
+        <div id="profile-edit-status" class="toast"></div>
+      </div>
+    </div>
+
+    <!-- Approval verify modal -->
+    <div id="approval-verify-modal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-panel">
+        <h2>Verifier Approval</h2>
+        <p class="muted">A second authorized user must confirm this action.</p>
+        <form id="approval-verify-form" class="stack">
+          <label>Verifier username <input id="approval-verify-username" type="text" required></label>
+          <label>Verifier password <input id="approval-verify-password" type="password" required></label>
+          <div class="modal-footer">
+            <button type="submit">Verify</button>
+            <button type="button" class="secondary" id="approval-verify-cancel-btn">Cancel</button>
+          </div>
+        </form>
+        <div id="approval-verify-status" class="toast"></div>
+      </div>
+    </div>
+
+    <!-- Sync confirm -->
+    <div id="sync-confirm-modal" class="modal" role="alertdialog" aria-modal="true" aria-labelledby="sync-confirm-title">
+      <div class="modal-panel confirm-panel">
+        <h2 id="sync-confirm-title">Sync New Files</h2>
+        <p id="sync-confirm-message" class="muted">Syncing will download all new reports and audit trails to your save folder for this machine.</p>
+        <div class="modal-footer">
+          <button type="button" id="sync-confirm-ok">OK</button>
+          <button type="button" class="secondary" id="sync-confirm-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report preview (fullscreen) -->
+    <div id="report-preview-modal" class="modal fullscreen" role="dialog" aria-modal="true">
+      <div class="modal-panel fullscreen-panel">
+        <div class="modal-header compact-header">
+          <div>
+            <h2 id="report-preview-title">Report Preview</h2>
+            <p id="report-preview-subtitle" class="muted"></p>
+          </div>
+          <div class="toolbar">
+            <button type="button" id="report-preview-export-btn">Download</button>
+            <button type="button" class="secondary" id="report-preview-save-folder-btn">Save to Folder</button>
+            <button type="button" class="ghost" id="report-preview-close-btn">Close</button>
+          </div>
+        </div>
+        <div class="pdf-viewport">
+          <embed id="report-preview-frame" class="pdf-embed" type="application/pdf" title="Report preview" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit detail -->
+    <div id="audit-preview-modal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-panel wide">
+        <div class="modal-header">
+          <div>
+            <h2 id="audit-preview-title">Audit Entry</h2>
+            <p id="audit-preview-subtitle" class="muted"></p>
+          </div>
+          <button type="button" class="ghost" id="audit-preview-close-btn">Close</button>
+        </div>
+        <div id="audit-preview-body" class="preview-doc"></div>
+      </div>
+    </div>
+
+    <!-- Sync progress -->
+    <div id="sync-progress-overlay" class="modal" role="alertdialog" aria-modal="true">
+      <div class="modal-panel progress-panel">
+        <h2 id="sync-progress-title">Syncing</h2>
+        <p id="sync-progress-message" class="muted">Copying new files from the machine…</p>
+        <div class="progress-track"><div id="sync-progress-bar" class="progress-bar"></div></div>
+        <div id="sync-progress-percent" class="progress-pct">0%</div>
+        <p id="sync-progress-detail" class="subtle" style="margin-top:8px">Starting…</p>
+      </div>
+    </div>
+
+    <script src="./js/shared/apiBridge.js"></script>
+    <script src="./js/shared/permissions.js"></script>
+    <script src="./js/profiles.js"></script>
+    <script src="./js/dashboard.js"></script>
+  </body>
+</html>

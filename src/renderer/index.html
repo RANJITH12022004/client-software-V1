@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLE Desktop Client — Machines</title>
+    <link rel="stylesheet" href="./css/tokens.css">
+    <link rel="stylesheet" href="./css/app.css">
+  </head>
+  <body>
+    <div class="shell">
+      <header class="shell-header">
+        <div class="brand">
+          <img src="../../assets/rle_logo.png" alt="Raise Lab Equipment">
+          <div class="brand-text">
+            <span class="brand-label">RLE Desktop Client</span>
+            <span class="brand-title">Machines</span>
+          </div>
+        </div>
+        <nav class="flow-steps" aria-label="Setup progress">
+          <span class="flow-step active"><span class="flow-step-num">1</span> Machines</span>
+          <span class="flow-sep">›</span>
+          <span class="flow-step"><span class="flow-step-num">2</span> Sign in</span>
+          <span class="flow-sep">›</span>
+          <span class="flow-step"><span class="flow-step-num">3</span> Workspace</span>
+        </nav>
+      </header>
+
+      <div class="shell-body shell-body--narrow">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Your Machines</h2>
+              <p>Add a machine by IP, then connect when it is online.</p>
+            </div>
+            <div class="toolbar">
+              <button type="button" class="secondary" id="refresh-managed-devices-btn">Refresh</button>
+              <button type="button" id="add-device-option">Add Machine</button>
+            </div>
+          </div>
+
+          <div id="device-list" class="machine-grid"></div>
+
+          <div id="device-management-status" class="toast" role="status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="add-device-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="add-device-title">
+      <div class="modal-panel">
+        <div class="modal-header">
+          <div>
+            <h2 id="add-device-title">Add Machine</h2>
+            <p class="muted">Enter the machine IP on your network.</p>
+          </div>
+          <button type="button" class="ghost" id="close-add-device-modal" aria-label="Close">✕</button>
+        </div>
+
+        <form id="device-form" class="stack">
+          <input type="hidden" id="device-id">
+          <input type="hidden" id="device-client-id">
+          <input type="hidden" id="device-base-url">
+
+          <label>
+            IP address
+            <input id="device-ip" type="text" inputmode="decimal" placeholder="192.168.1.33" required autofocus>
+          </label>
+
+          <div class="row">
+            <button type="button" id="connect-device-btn" class="lg">Test Connection</button>
+            <button type="button" class="secondary" id="retry-device-btn" hidden>Retry</button>
+          </div>
+
+          <div id="nickname-fields" class="stack" hidden>
+            <label>
+              Nickname
+              <input id="device-nickname" type="text" placeholder="e.g. Lab Machine 1">
+            </label>
+
+            <div class="stack">
+              <span class="subtle">Save folder on this computer</span>
+              <div id="folder-chip" class="folder-chip empty">No folder selected</div>
+              <input type="hidden" id="device-save-path">
+              <button type="button" class="secondary" id="pick-save-folder-btn">Choose Folder</button>
+            </div>
+
+            <button type="submit" class="lg">Save &amp; Continue</button>
+          </div>
+        </form>
+
+        <div id="add-device-status" class="toast" role="status">Enter an IP and test the connection.</div>
+      </div>
+    </div>
+
+    <div id="connection-error-popup" class="modal nested-modal" role="alertdialog" aria-modal="true" hidden>
+      <div class="modal-panel">
+        <h3>Connection Failed</h3>
+        <p id="connection-error-message" class="muted">Unable to connect.</p>
+        <div class="modal-footer">
+          <button type="button" id="connection-error-retry">Retry</button>
+          <button type="button" class="secondary" id="connection-error-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./js/shared/apiBridge.js"></script>
+    <script src="./js/deviceManagement.js"></script>
+  </body>
+</html>
