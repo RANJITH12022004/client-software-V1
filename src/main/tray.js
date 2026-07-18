@@ -9,7 +9,7 @@ function createTray(mainWindow) {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show RLE Desktop Client',
+      label: 'Show RLE Client',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -24,7 +24,7 @@ function createTray(mainWindow) {
     }
   ]);
 
-  tray.setToolTip('RLE Desktop Client');
+  tray.setToolTip('RLE Client');
   tray.setContextMenu(contextMenu);
 
   return tray;

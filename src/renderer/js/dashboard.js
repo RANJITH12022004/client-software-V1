@@ -9,6 +9,9 @@
   const syncProgressBar = document.querySelector('#sync-progress-bar');
   const syncProgressPercent = document.querySelector('#sync-progress-percent');
   const syncProgressDetail = document.querySelector('#sync-progress-detail');
+  const syncProgressTitle = document.querySelector('#sync-progress-title');
+  const syncProgressMessage = document.querySelector('#sync-progress-message');
+  const syncProgressTrack = document.querySelector('.progress-track');
   const weeklyDayWrap = document.querySelector('#weekly-day-wrap');
   const monthlyDayWrap = document.querySelector('#monthly-day-wrap');
 
@@ -29,6 +32,8 @@
   const auditPreviewSubtitle = document.querySelector('#audit-preview-subtitle');
 
   let syncProgressTimer = null;
+  let busyProgressTimer = null;
+  let busyProgressValue = 0;
   let selectedDevice = null;
   let reportsCache = [];
   let selectedReportIds = new Set();
@@ -452,9 +457,53 @@
 
   function setSyncProgress(percent, detail) {
     const safePercent = Math.max(0, Math.min(100, percent));
-    syncProgressBar.style.width = `${safePercent}%`;
-    syncProgressPercent.textContent = `${Math.round(safePercent)}%`;
-    syncProgressDetail.textContent = detail;
+    busyProgressValue = safePercent;
+    if (syncProgressBar) syncProgressBar.style.width = `${safePercent}%`;
+    if (syncProgressPercent) syncProgressPercent.textContent = `${Math.round(safePercent)}%`;
+    if (syncProgressDetail) syncProgressDetail.textContent = detail || '';
+    if (syncProgressTrack) {
+      syncProgressTrack.classList.toggle('is-indeterminate', safePercent > 0 && safePercent < 100 && false);
+    }
+  }
+
+  function showBusyProgress(title, message, detail) {
+    if (!syncOverlay) return;
+    if (syncProgressTitle) syncProgressTitle.textContent = title || 'Working';
+    if (syncProgressMessage) syncProgressMessage.textContent = message || 'Please wait…';
+    setSyncProgress(0, detail || 'Starting…');
+    if (syncProgressTrack) syncProgressTrack.classList.remove('is-indeterminate');
+    syncOverlay.classList.add('active');
+  }
+
+  function pulseBusyProgress(targetPercent, detail) {
+    const target = Math.max(0, Math.min(99, targetPercent));
+    if (detail) setSyncProgress(Math.max(busyProgressValue, Math.min(target, busyProgressValue + 1)), detail);
+    else setSyncProgress(Math.max(busyProgressValue, Math.min(target, busyProgressValue + 1)), syncProgressDetail ? syncProgressDetail.textContent : '');
+  }
+
+  function startBusyProgressAnimation(title, message, { ceiling = 92, step = 2, intervalMs = 700 } = {}) {
+    showBusyProgress(title, message, 'Starting…');
+    setSyncProgress(8, 'Connecting to machine…');
+    clearInterval(busyProgressTimer);
+    busyProgressTimer = setInterval(() => {
+      if (busyProgressValue >= ceiling) return;
+      const next = Math.min(ceiling, busyProgressValue + step);
+      let detail = 'Working…';
+      if (next < 25) detail = 'Preparing export…';
+      else if (next < 55) detail = 'Processing on the machine…';
+      else if (next < 80) detail = 'Building file…';
+      else detail = 'Almost done…';
+      setSyncProgress(next, detail);
+    }, intervalMs);
+  }
+
+  async function finishBusyProgress(detail, { ok = true } = {}) {
+    clearInterval(busyProgressTimer);
+    busyProgressTimer = null;
+    setSyncProgress(100, detail || (ok ? 'Done.' : 'Finished with errors.'));
+    await new Promise((resolve) => setTimeout(resolve, ok ? 450 : 900));
+    if (syncOverlay) syncOverlay.classList.remove('active');
+    setSyncProgress(0, '');
   }
 
   function summarizeSyncResult(result) {
@@ -520,6 +569,14 @@
     }
 
     syncOverlay.classList.add('active');
+    if (syncProgressTitle) syncProgressTitle.textContent = 'Syncing';
+    if (syncProgressMessage) {
+      syncProgressMessage.textContent = mode === 'reports'
+        ? 'Copying new report PDFs from the machine…'
+        : mode === 'audit'
+          ? 'Copying new audit PDFs from the machine…'
+          : 'Copying new files from the machine…';
+    }
     await window.apiBridge.sync.setBusy(true);
     setSyncProgress(10, mode === 'reports' ? 'Checking for new reports...' : mode === 'audit' ? 'Checking for new audit trails...' : 'Checking for new files...');
 
@@ -557,7 +614,7 @@
     reportsTableBody.innerHTML = reportsCache.map((report, index) => {
       const id = String(report.id);
       const checked = selectedReportIds.has(id) ? 'checked' : '';
-      const status = report.status || report.approvalStatus || '--';
+      const status = report.reportApprovalStatus || report.approvalStatus || report.status || '--';
       return `
         <tr data-report-id="${escapeHtml(id)}">
           <td class="col-check"><input type="checkbox" class="report-select" data-report-id="${escapeHtml(id)}" ${checked} aria-label="Select report ${escapeHtml(id)}"></td>
@@ -708,17 +765,45 @@
       setStatus('You do not have permission to download reports.', 'error');
       return;
     }
-    if (toFolder) {
-      const device = await loadSelectedDevice();
-      if (!device) return;
-      if (!(await ensureSavePath(device))) return;
-      const result = await window.apiBridge.reports.savePdf({ reportId });
-      setStatus(window.apiBridge.messageFromResult(result, 'Report saved to folder.'), result.ok ? 'success' : 'error');
-      return;
-    }
+    try {
+      startBusyProgressAnimation(
+        toFolder ? 'Saving report' : 'Downloading report',
+        toFolder ? 'Copying PDF into your machine folder…' : 'Generating A4 PDF and opening Save dialog…',
+        { ceiling: 88, step: 3, intervalMs: 500 }
+      );
+      if (toFolder) {
+        const device = await loadSelectedDevice();
+        if (!device) {
+          await finishBusyProgress('Cancelled.', { ok: false });
+          return;
+        }
+        if (!(await ensureSavePath(device))) {
+          await finishBusyProgress('Save folder required.', { ok: false });
+          return;
+        }
+        const result = await window.apiBridge.reports.savePdf({ reportId });
+        if (result && result.status === 401) {
+          await finishBusyProgress('Session expired.', { ok: false });
+          redirectToLogin('Session expired. Please sign in again.');
+          return;
+        }
+        await finishBusyProgress(result.ok ? 'Report saved.' : (result.error || 'Save failed.'), { ok: result.ok });
+        setStatus(window.apiBridge.messageFromResult(result, 'Report saved to folder.'), result.ok ? 'success' : 'error');
+        return;
+      }
 
-    const result = await window.apiBridge.reports.downloadPdf(reportId);
-    setStatus(window.apiBridge.messageFromResult(result, 'Report downloaded.'), result.ok ? 'success' : 'error');
+      const result = await window.apiBridge.reports.downloadPdf(reportId);
+      if (result && result.status === 401) {
+        await finishBusyProgress('Session expired.', { ok: false });
+        redirectToLogin('Session expired. Please sign in again.');
+        return;
+      }
+      await finishBusyProgress(result.ok ? 'Ready to save.' : (result.error || 'Download failed.'), { ok: result.ok });
+      setStatus(window.apiBridge.messageFromResult(result, 'Report downloaded.'), result.ok ? 'success' : 'error');
+    } catch (error) {
+      await finishBusyProgress(error.message || 'Report download failed.', { ok: false });
+      setStatus(error.message || 'Report download failed.', 'error');
+    }
   }
 
   async function exportSelectedReports({ asZip = false } = {}) {
@@ -732,19 +817,92 @@
       return;
     }
 
-    if (asZip) {
-      const result = await window.apiBridge.reports.downloadZip({ report_ids: ids.map((id) => Number(id)) });
-      setStatus(window.apiBridge.messageFromResult(result, 'Reports downloaded as ZIP.'), result.ok ? 'success' : 'error');
-      return;
-    }
+    try {
+      if (asZip) {
+        showBusyProgress(
+          'Building ZIP',
+          `Packaging ${ids.length} report PDF${ids.length === 1 ? '' : 's'}…`
+        );
+        setSyncProgress(2, `Starting download of ${ids.length} reports…`);
+        const stopZipProgress = window.apiBridge.reports.onZipProgress((payload) => {
+          const total = Math.max(1, Number(payload && payload.total) || ids.length);
+          const current = Math.max(0, Number(payload && payload.current) || 0);
+          if (payload && payload.phase === 'zip') {
+            setSyncProgress(95, 'Creating ZIP file…');
+            return;
+          }
+          if (payload && payload.phase === 'server') {
+            startBusyProgressAnimation(
+              'Building ZIP',
+              `Packaging ${ids.length} report PDF${ids.length === 1 ? '' : 's'} on the machine…`,
+              { ceiling: 88, step: 1, intervalMs: 800 }
+            );
+            return;
+          }
+          clearInterval(busyProgressTimer);
+          busyProgressTimer = null;
+          const pct = Math.min(92, Math.round((current / total) * 90));
+          setSyncProgress(pct, `Downloading report ${current} of ${total}…`);
+        });
+        let result;
+        try {
+          result = await window.apiBridge.reports.downloadZip({ report_ids: ids.map((id) => Number(id)) });
+        } finally {
+          if (typeof stopZipProgress === 'function') stopZipProgress();
+        }
+        if (result && result.status === 401) {
+          await finishBusyProgress('Session expired.', { ok: false });
+          redirectToLogin('Session expired. Please sign in again.');
+          return;
+        }
+        const added = result && result.data && result.data.added;
+        const skipped = result && result.data && result.data.skipped;
+        const detail = result.ok
+          ? (skipped
+            ? `ZIP ready (${added} PDF${added === 1 ? '' : 's'}, ${skipped} skipped).`
+            : 'ZIP ready.')
+          : (result.error || 'ZIP failed.');
+        await finishBusyProgress(detail, { ok: result.ok });
+        setStatus(window.apiBridge.messageFromResult(result, 'Reports downloaded as ZIP.'), result.ok ? 'success' : 'error');
+        return;
+      }
 
-    setStatus(`Downloading ${ids.length} report${ids.length === 1 ? '' : 's'}...`);
-    let saved = 0;
-    for (const reportId of ids) {
-      const result = await window.apiBridge.reports.downloadPdf(reportId);
-      if (result.ok) saved += 1;
+      startBusyProgressAnimation(
+        'Downloading reports',
+        `Copying ${ids.length} A4 PDF${ids.length === 1 ? '' : 's'}…`,
+        { ceiling: 85, step: 2, intervalMs: 450 }
+      );
+      let saved = 0;
+      let lastError = '';
+      for (let index = 0; index < ids.length; index += 1) {
+        const reportId = ids[index];
+        const pct = Math.round(((index + 1) / ids.length) * 90);
+        setSyncProgress(pct, `Downloading report ${index + 1} of ${ids.length}…`);
+        const result = await window.apiBridge.reports.downloadPdf(reportId);
+        if (result && result.status === 401) {
+          await finishBusyProgress('Session expired.', { ok: false });
+          redirectToLogin('Session expired. Please sign in again.');
+          return;
+        }
+        if (result.ok) {
+          saved += 1;
+        } else {
+          lastError = result.error || lastError;
+        }
+      }
+      const ok = saved > 0;
+      await finishBusyProgress(
+        ok ? `Downloaded ${saved} of ${ids.length}.` : (lastError || 'Download failed.'),
+        { ok }
+      );
+      setStatus(
+        saved ? `Downloaded ${saved} report${saved === 1 ? '' : 's'}.` : (lastError || 'Download failed.'),
+        saved ? 'success' : 'error'
+      );
+    } catch (error) {
+      await finishBusyProgress(error.message || 'Report download failed.', { ok: false });
+      setStatus(error.message || 'Report download failed.', 'error');
     }
-    setStatus(saved ? `Downloaded ${saved} report${saved === 1 ? '' : 's'}.` : 'Download failed.', saved ? 'success' : 'error');
   }
 
   async function exportAuditPdf() {
@@ -752,9 +910,26 @@
       setStatus('You do not have permission to export audit trails.', 'error');
       return;
     }
-    const filters = getAuditFilters();
-    const result = await window.apiBridge.audit.download({ filters });
-    setStatus(window.apiBridge.messageFromResult(result, 'Audit PDF exported.'), result.ok ? 'success' : 'error');
+    try {
+      const filters = getAuditFilters();
+      const countHint = auditCache.length ? ` (${auditCache.length} rows)` : '';
+      startBusyProgressAnimation(
+        'Exporting audit PDF',
+        `Building A4 portrait audit trail${countHint}. Large exports can take several minutes…`,
+        { ceiling: 93, step: 1, intervalMs: 900 }
+      );
+      const result = await window.apiBridge.audit.download({ filters });
+      if (result && result.status === 401) {
+        await finishBusyProgress('Session expired.', { ok: false });
+        redirectToLogin('Session expired. Please sign in again.');
+        return;
+      }
+      await finishBusyProgress(result.ok ? 'Audit PDF ready.' : (result.error || 'Export failed.'), { ok: result.ok });
+      setStatus(window.apiBridge.messageFromResult(result, 'Audit PDF exported.'), result.ok ? 'success' : 'error');
+    } catch (error) {
+      await finishBusyProgress(error.message || 'Audit export failed.', { ok: false });
+      setStatus(error.message || 'Audit export failed.', 'error');
+    }
   }
 
   document.querySelectorAll('[data-tab]').forEach((el) => {

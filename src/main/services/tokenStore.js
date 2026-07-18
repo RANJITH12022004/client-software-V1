@@ -1,4 +1,4 @@
-const SERVICE_NAME = 'RLE Desktop Client';
+const SERVICE_NAME = 'RLE Client';
 
 let keytarModule;
 

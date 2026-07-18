@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RLE Desktop Client — Workspace</title>
+    <title>RLE Client — Workspace</title>
     <link rel="stylesheet" href="./css/tokens.css">
     <link rel="stylesheet" href="./css/app.css">
   </head>
@@ -13,7 +13,7 @@
         <div class="brand">
           <img src="../../assets/rle_logo.png" alt="Raise Lab Equipment">
           <div class="brand-text">
-            <span class="brand-label">RLE</span>
+            <span class="brand-label">RLE Client</span>
             <span class="brand-title">Workspace</span>
           </div>
         </div>
@@ -380,8 +380,9 @@
     <!-- Sync progress -->
     <div id="sync-progress-overlay" class="modal" role="alertdialog" aria-modal="true">
       <div class="modal-panel progress-panel">
-        <h2 id="sync-progress-title">Syncing</h2>
-        <p id="sync-progress-message" class="muted">Copying new files from the machine…</p>
+        <div class="progress-spinner" aria-hidden="true"></div>
+        <h2 id="sync-progress-title">Working</h2>
+        <p id="sync-progress-message" class="muted">Please wait…</p>
         <div class="progress-track"><div id="sync-progress-bar" class="progress-bar"></div></div>
         <div id="sync-progress-percent" class="progress-pct">0%</div>
         <p id="sync-progress-detail" class="subtle" style="margin-top:8px">Starting…</p>

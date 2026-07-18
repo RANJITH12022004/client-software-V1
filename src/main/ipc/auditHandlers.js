@@ -1,37 +1,13 @@
-const fs = require('node:fs/promises');
-const { BrowserWindow, dialog, ipcMain } = require('electron');
+const { ipcMain } = require('electron');
 const { DESKTOP_API, IPC_CHANNELS } = require('../../shared/constants');
 const { getActiveClient } = require('./deviceHandlers');
+const { defaultFileName, saveBufferWithDialog } = require('../services/fileSave');
 
 function failure(error) {
   return {
     ok: false,
+    status: error.status || 0,
     error: error.message || String(error)
-  };
-}
-
-function defaultFileName(prefix, extension) {
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  return `${prefix}-${stamp}.${extension}`;
-}
-
-async function saveBuffer(event, buffer) {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  const result = await dialog.showSaveDialog(window, {
-    defaultPath: defaultFileName('audit-download', 'pdf'),
-    filters: [{ name: 'PDF', extensions: ['pdf'] }]
-  });
-
-  if (result.canceled || !result.filePath) {
-    return { ok: false, error: 'Save was cancelled.' };
-  }
-
-  await fs.writeFile(result.filePath, buffer);
-  return {
-    ok: true,
-    data: {
-      filePath: result.filePath
-    }
   };
 }
 
@@ -52,14 +28,17 @@ function registerAuditHandlers() {
         method: 'POST',
         body: payload || {},
         responseType: 'arrayBuffer',
-        timeoutMs: 120000
+        timeoutMs: 900000
       });
-
       if (!result.ok) {
         return result;
       }
 
-      return saveBuffer(event, result.data);
+      return saveBufferWithDialog(event, {
+        buffer: result.data,
+        defaultPath: defaultFileName('audit-download', 'pdf'),
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+      });
     } catch (error) {
       return failure(error);
     }

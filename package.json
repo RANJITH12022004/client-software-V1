@@ -1,7 +1,10 @@
 {
   "name": "rle-desktop-client",
   "version": "0.1.0",
-  "description": "Standalone Electron desktop client for connecting to an RLE kiosk over HTTP and WebSocket.",
+  "description": "RLE Client — desktop app for connecting to RLE kiosk instruments over HTTP and WebSocket.",
+  "author": "Raise Lab Equipment",
+  "license": "SEE LICENSE IN legal/EULA.txt",
+  "homepage": "https://github.com/RANJITH12022004/client-software-V1",
   "main": "src/main/main.js",
   "private": true,
   "type": "commonjs",

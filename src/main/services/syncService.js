@@ -116,7 +116,9 @@ async function syncReports(client, device, syncStore, { manual = false } = {}) {
     errors,
     message: saved
       ? `Saved ${saved} new report${saved === 1 ? '' : 's'} to ${reportsDir}.`
-      : errors.join(' ')
+      : (errors.length > 3
+        ? `${errors.length} reports failed PDF download (e.g. ${errors[0]}). Check the machine logs.`
+        : errors.join(' '))
   };
 }
 

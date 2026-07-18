@@ -1,0 +1,49 @@
+RLE CLIENT — END USER LICENSE AGREEMENT (EULA)
+
+Last updated: 14 July 2026
+
+IMPORTANT — PLEASE READ CAREFULLY.
+
+This End User License Agreement ("Agreement") is a legal agreement between you ("you" or "User") and Raise Lab Equipment / the licensor of RLE Client ("Licensor") for the RLE Client desktop software application, including any installer, updates, and related documentation (the "Software").
+
+By installing, copying, or using the Software, you agree to be bound by this Agreement and the RLE Client Privacy Policy. If you do not agree, do not install or use the Software.
+
+1. LICENSE GRANT
+Subject to your compliance with this Agreement, Licensor grants you a limited, non-exclusive, non-transferable, revocable license to install and use the Software on computers you own or control, solely for connecting to compatible RLE laboratory instruments ("Kiosk Devices") on your local network and for retrieving and storing reports, audit trails, and related data you are authorized to access.
+
+2. OWNERSHIP
+The Software is licensed, not sold. Licensor and its licensors retain all right, title, and interest in and to the Software, including all intellectual property rights. Except for the limited license above, no rights are granted.
+
+3. RESTRICTIONS
+You shall not:
+(a) reverse engineer, decompile, or disassemble the Software except to the extent such restriction is prohibited by applicable law;
+(b) rent, lease, sell, sublicense, or redistribute the Software except as expressly permitted by Licensor;
+(c) remove or alter any proprietary notices;
+(d) use the Software to access systems, data, or accounts without authorization;
+(e) use the Software in any manner that violates applicable law, including data protection, medical device, and lab quality regulations that apply to your use.
+
+4. ACCOUNTS AND CREDENTIALS
+You are responsible for credentials you use to sign in to Kiosk Devices through the Software, for keeping those credentials confidential, and for activity under your accounts. You must use the Software only with devices and credentials you are authorized to use.
+
+5. DATA AND THIRD-PARTY SYSTEMS
+The Software may communicate with Kiosk Devices on your network and may store files (such as PDF reports and audit exports) in folders you choose on your computer. Operation depends on network availability and correct configuration of Kiosk Devices. Licensor is not responsible for third-party hardware, firmware, network, or facility systems outside its control.
+
+6. UPDATES
+Licensor may provide updates or new versions. Updates may be required for continued compatibility. This Agreement applies to updates unless accompanied by a separate license.
+
+7. DISCLAIMER OF WARRANTIES
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. LICENSOR DOES NOT WARRANT THAT THE SOFTWARE WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF HARMFUL COMPONENTS.
+
+8. LIMITATION OF LIABILITY
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, LICENSOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR BUSINESS, ARISING OUT OF OR RELATED TO THE SOFTWARE OR THIS AGREEMENT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. LICENSOR'S TOTAL LIABILITY FOR ANY CLAIM ARISING OUT OF THE SOFTWARE SHALL NOT EXCEED THE AMOUNT YOU PAID FOR THE SOFTWARE IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, OR USD ZERO IF THE SOFTWARE WAS PROVIDED WITHOUT CHARGE.
+
+9. TERMINATION
+This Agreement is effective until terminated. Your rights terminate automatically if you fail to comply with any term. Upon termination you must cease all use and uninstall the Software. Sections that by their nature should survive will survive termination.
+
+10. GOVERNING LAW
+This Agreement is governed by the laws applicable in the Licensor's principal place of business, without regard to conflict-of-law principles, except where mandatory consumer protection laws of your jurisdiction require otherwise.
+
+11. CONTACT
+For license questions regarding RLE Client, contact Raise Lab Equipment using the support channels provided with your instrument or commercial agreement.
+
+BY CLICKING "I AGREE", "ACCEPT", OR BY INSTALLING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT AND THE PRIVACY POLICY AND AGREE TO BE BOUND BY THEM.

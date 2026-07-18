@@ -1,5 +1,6 @@
-appId: com.rle.desktop-client
-productName: RLE Desktop Client
+appId: com.rle.client
+productName: RLE Client
+copyright: Copyright © 2026 Raise Lab Equipment
 
 directories:
   output: build
@@ -7,17 +8,41 @@ directories:
 files:
   - src/**/*
   - assets/**/*
+  - legal/**/*
   - package.json
+
+extraResources:
+  - from: legal
+    to: legal
+    filter:
+      - "**/*"
 
 win:
   target:
     - nsis
   icon: assets/icon.ico
 
+nsis:
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: RLE Client
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+  license: legal/INSTALLER_AGREEMENT.html
+  displayLanguageSelector: false
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+  artifactName: RLE-Client-Setup-${version}.${ext}
+
 mac:
   target:
     - dmg
-  icon: assets/icon.icns
+  icon: assets/icon.png
 
 linux:
   target:

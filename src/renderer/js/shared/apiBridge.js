@@ -35,7 +35,8 @@
       getPdf: call(group('reports').getPdf),
       savePdf: call(group('reports').savePdf),
       downloadPdf: call(group('reports').downloadPdf),
-      downloadZip: call(group('reports').downloadZip)
+      downloadZip: call(group('reports').downloadZip),
+      onZipProgress: call(group('reports').onZipProgress, function () { return function noop() {}; })
     },
     audit: {
       list: call(group('audit').list),

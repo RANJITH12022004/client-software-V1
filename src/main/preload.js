@@ -31,6 +31,7 @@ const IPC_CHANNELS = Object.freeze({
   REPORTS_PDF_DOWNLOAD: 'reports:pdf:download',
   REPORTS_PDF_SAVE: 'reports:pdf:save',
   REPORTS_DOWNLOAD: 'reports:download',
+  REPORTS_ZIP_PROGRESS: 'reports:zip-progress',
   AUDIT_LIST: 'audit:list',
   AUDIT_DOWNLOAD: 'audit:download',
   MEMBERS_LIST: 'members:list',
@@ -72,7 +73,8 @@ const electronAPI = {
     getPdf: (reportId) => ipcRenderer.invoke(IPC_CHANNELS.REPORTS_PDF_GET, reportId),
     savePdf: (payload) => ipcRenderer.invoke(IPC_CHANNELS.REPORTS_PDF_SAVE, payload),
     downloadPdf: (reportId) => ipcRenderer.invoke(IPC_CHANNELS.REPORTS_PDF_DOWNLOAD, reportId),
-    downloadZip: (payload) => ipcRenderer.invoke(IPC_CHANNELS.REPORTS_DOWNLOAD, payload)
+    downloadZip: (payload) => ipcRenderer.invoke(IPC_CHANNELS.REPORTS_DOWNLOAD, payload),
+    onZipProgress: (callback) => on(IPC_CHANNELS.REPORTS_ZIP_PROGRESS, callback)
   },
   audit: {
     list: (filters) => ipcRenderer.invoke(IPC_CHANNELS.AUDIT_LIST, filters),

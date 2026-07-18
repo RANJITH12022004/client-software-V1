@@ -1,0 +1,94 @@
+RLE CLIENT — PRIVACY POLICY
+
+Last updated: 14 July 2026
+
+This Privacy Policy describes how RLE Client (the "App"), provided by Raise Lab Equipment ("we", "us", or "Licensor"), processes information when you install and use the App on your computer.
+
+1. SCOPE
+The App is a desktop application that connects over your local network to RLE laboratory instruments ("Kiosk Devices"). This policy covers the App on your Windows (or other) computer. Separate policies or procedures at your facility may apply to data stored on instruments or laboratory information systems.
+
+2. INFORMATION WE PROCESS THROUGH THE APP
+Depending on how you use the App, the following categories may be processed:
+
+a) Device connection details you enter
+   - Instrument IP address / host, nickname, and related connection settings
+   - Chosen local folder paths where reports and audit files are saved
+
+b) Authentication data
+   - Usernames and session tokens used to sign in to a Kiosk Device
+   - Credentials/tokens may be stored securely on your computer using the operating system credential store (e.g. Windows Credential Manager via keytar) associated with the App and device identity
+
+c) Laboratory / operational content retrieved from instruments you authorize
+   - Report listings and PDF files
+   - Audit trail listings and PDF exports
+   - Member/profile information exposed by the instrument APIs you are permitted to access
+   - Recipe and embed session data when you use those features
+
+d) Technical / diagnostic data on your device
+   - Local application preferences and device lists (typically stored under the App's user data directory)
+   - Logs or error details that may appear in the App environment
+
+3. WHAT WE DO NOT DO BY DEFAULT
+Unless you or your organization separately configures cloud services outside this App:
+- The App does not create a Raise Lab Equipment online account as part of a standard install.
+- The App is designed to talk to Kiosk Devices on your LAN (or other network you configure), not to upload reports to a Raise Lab Equipment public cloud by default.
+- We do not sell your personal information.
+
+4. PURPOSES OF PROCESSING
+Information is processed to:
+- Connect to and authenticate against Kiosk Devices you select
+- Display and download reports, audit trails, and related content
+- Remember your device list, save folders, and session convenience features
+- Provide optional scheduled backup/sync to folders you choose
+- Maintain security of stored credentials and session state
+- Improve reliability and diagnose errors on your machine
+
+5. LEGAL BASES (WHERE APPLICABLE)
+Where data protection laws such as the GDPR apply, processing is typically based on:
+- Performance of a contract / provision of the App functionality you request
+- Legitimate interests in securing the App and supporting laboratory workflows
+- Your consent, where required (including acceptance of this Policy at install)
+- Legal obligations when applicable
+
+Your employer or laboratory may be the controller for instrument and production data; in that case the App may act as a tool under their instructions.
+
+6. STORAGE LOCATION AND RETENTION
+- Connection settings and app preferences: stored locally on your computer until you delete the App data or uninstall (and optionally remove AppData).
+- Downloaded PDFs and exports: stored in the folders you choose; retention is controlled by you or your organization's policies.
+- Session tokens: retained until logout, expiry, device IP change (token clear), App data reset, or credential store cleanup.
+You (or your IT administrator) control backup and deletion of local files.
+
+7. SHARING
+The App shares data with:
+- Kiosk Devices you configure (to perform login and API requests)
+- Your operating system credential store for secure token storage
+It does not intentionally share your local report files with third parties. Network administrators, antivirus products, or proxies on your network may observe traffic according to your organization's policies.
+
+8. SECURITY
+We use industry-reasonable measures appropriate for a desktop client, including:
+- Context-isolated renderer and privilege-separated Electron architecture
+- Secure OS-backed storage for tokens where keytar is available
+- HTTPS/HTTP as configured against your instruments (LAN deployments often use HTTP to local devices—protect your network accordingly)
+No method of transmission or storage is 100% secure. You are responsible for securing the host PC, accounts, and network.
+
+9. CHILDREN
+The App is intended for professional laboratory / workplace use and is not directed to children.
+
+10. YOUR RIGHTS AND CHOICES
+Subject to applicable law and your organization's policies, you may:
+- Sign out of instrument sessions
+- Remove saved devices and clear related tokens
+- Delete downloaded files from your chosen folders
+- Uninstall the App and remove remaining AppData if desired
+Contact your organization or Raise Lab Equipment support for rights requests that pertain to instrument-side records.
+
+11. INTERNATIONAL TRANSFERS
+Local-network use typically keeps instrument traffic on your premises. If you or your organization connect instruments or PCs across regions, your organization's transfer mechanisms apply.
+
+12. CHANGES TO THIS POLICY
+We may update this Privacy Policy. The "Last updated" date will change when we do. Continued use after an update during installation of a new version constitutes acceptance of the revised Policy where permitted by law.
+
+13. CONTACT
+For privacy questions about RLE Client, contact Raise Lab Equipment through the support channels provided with your instrument or commercial agreement.
+
+BY INSTALLING OR USING RLE CLIENT, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS PRIVACY POLICY.

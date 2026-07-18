@@ -24,7 +24,17 @@ function formatFetchError(error) {
 
 async function parseResponse(response, responseType) {
   if (responseType === 'arrayBuffer') {
-    return Buffer.from(await response.arrayBuffer());
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (!response.ok) {
+      const text = buffer.toString('utf8');
+      try {
+        return JSON.parse(text);
+      } catch (_error) {
+        const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 240);
+        return snippet ? { message: snippet } : { message: `The machine returned an error (${response.status}).` };
+      }
+    }
+    return buffer;
   }
 
   const contentType = response.headers.get('content-type') || '';

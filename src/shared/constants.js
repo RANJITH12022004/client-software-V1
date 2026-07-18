@@ -76,6 +76,7 @@ const IPC_CHANNELS = Object.freeze({
   REPORTS_PDF_DOWNLOAD: 'reports:pdf:download',
   REPORTS_PDF_SAVE: 'reports:pdf:save',
   REPORTS_DOWNLOAD: 'reports:download',
+  REPORTS_ZIP_PROGRESS: 'reports:zip-progress',
   AUDIT_LIST: 'audit:list',
   AUDIT_DOWNLOAD: 'audit:download',
   MEMBERS_LIST: 'members:list',

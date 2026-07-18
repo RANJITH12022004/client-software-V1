@@ -6,7 +6,7 @@ report_service.py - Tap Density report generation and context.
 import html as html_module
 import json
 import pathlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 
 import data_service
@@ -536,12 +536,20 @@ def enrich_report_context(report_data: Dict[str, Any]) -> Dict[str, Any]:
     return report_data
 
 
+def _as_naive_utc(dt: datetime) -> datetime:
+    """Normalize aware/naive datetimes so comparisons never mix tzinfo."""
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
 def _parse_report_datetime(value: Any) -> Optional[datetime]:
     s = str(value or "").strip()
     if not s:
         return None
     try:
-        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return _as_naive_utc(dt)
     except Exception:
         return None
 
@@ -578,9 +586,12 @@ def _validation_dates_from_last(dt: datetime) -> Dict[str, str]:
 
 def _resolve_validation_dates(factory_settings: Optional[Dict[str, Any]] = None) -> Dict[str, str]:
     """Single source for validation dates: latest validation report, else stored last; next always +1 year."""
-    computed = _compute_validation_dates_from_reports()
-    if computed.get("lastValidationDate"):
-        return computed
+    try:
+        computed = _compute_validation_dates_from_reports()
+        if computed.get("lastValidationDate"):
+            return computed
+    except Exception as exc:
+        print(f"[REPORT] Validation date compute failed: {exc}")
     fs = factory_settings or {}
     last_dt = _parse_display_date(fs.get("lastValidationDate"))
     if last_dt:
@@ -863,13 +874,13 @@ def build_report_pdf_html(report: Dict[str, Any]) -> str:
     escaped = html_module.escape(a4_text)
 
     css = (
-        "@page{size:A4;margin:10mm;}"
+        "@page{size:A4 portrait;margin:10mm;}"
         "body{margin:0;padding:3mm 0;color:#000;background:#fff;"
         "font-family:'Courier New',Courier,monospace;font-size:11pt;line-height:1.25;"
         "text-align:center;box-sizing:border-box;"
         "-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
-        ".a4-sheet{display:inline-block;max-width:100%;text-align:left;vertical-align:top;}"
-        "pre{margin:0;white-space:pre;tab-size:4;letter-spacing:0;font-size:inherit;line-height:inherit;}"
+        ".a4-sheet{display:inline-block;width:190mm;max-width:190mm;text-align:left;vertical-align:top;}"
+        "pre{margin:0;white-space:pre-wrap;tab-size:4;letter-spacing:0;font-size:inherit;line-height:inherit;}"
     )
     return (
         '<!doctype html><html><head><meta charset="utf-8"><title>Report</title>'
