@@ -30,7 +30,8 @@ Examples:
 
 - Friability: `--host 192.168.1.100 --app-name "Friability Tester"`
 - Tap Density: `--host 192.168.1.33 --app-name "Tap Density"`
-
+- Tablet Hardness: `--host 100.108.222.67 --app-name "Tablet Hardness Tester"`
+  (also reachable on LAN as `192.168.1.100` when on the same subnet)
 The script uploads `desktop_api/`, installs the multi-product `bridge.py`, writes `desktop_app_name`, restarts `kiosk-bridge`, and checks LAN health.
 
 ## Desktop client
@@ -43,7 +44,8 @@ The script uploads `desktop_api/`, installs the multi-product `bridge.py`, write
 ## Verification
 
 ```bash
-python scripts/verify_friability_100.py   # Friability .100 smoke (adjust host in script if needed)
+python scripts/deploy_desktop_api_pi.py --host 100.108.222.67 --app-name "Tablet Hardness Tester"
+python scripts/verify_hardness_desktop.py
 # or health only:
 curl -s http://<PI_IP>:5000/api/desktop/v1/health
 ```
