@@ -10,7 +10,72 @@
   const approvalForm = document.querySelector('#approval-verify-form');
   const approvalStatus = document.querySelector('#approval-verify-status');
 
+  // Local display metadata (same as machine rbac.js). API supplies keys/labels.
+  const CARD_META = {
+    perm_test_access: {
+      description: 'Quick test (including step setup), recipe-based test runs, and configuring recipe steps.',
+      accent: 0
+    },
+    perm_test_report_approve: {
+      description: 'Approve pending test reports.',
+      accent: 1
+    },
+    perm_recipe_manage: {
+      description: 'Create and edit recipes.',
+      accent: 2
+    },
+    perm_recipe_approve: {
+      description: 'Participate in recipe approval / verification.',
+      accent: 3
+    },
+    perm_profile_admin: {
+      description: 'Add, disable, edit, lock, unlock, and change roles for profiles.',
+      accent: 4
+    },
+    perm_validation_test: {
+      description: 'Run validation tests (USP 1 / USP 2).',
+      accent: 5
+    },
+    perm_validation_report_approve: {
+      description: 'Approve pending validation reports.',
+      accent: 6
+    },
+    perm_datetime: {
+      description: 'Change system date, time, and RTC.',
+      accent: 7
+    },
+    perm_reports_view: {
+      description: 'Open, preview, and print reports.',
+      accent: 8
+    },
+    perm_audit_view: {
+      description: 'View audit log and export audit trails to USB.',
+      accent: 9
+    },
+    perm_export_usb: {
+      description: 'Export to USB (requires report or audit access for the data being exported).',
+      accent: 10
+    },
+    perm_export_approve: {
+      description: 'Verify another user’s USB export (secondary approval).',
+      accent: 11
+    },
+    perm_calibration_test: {
+      description: 'Run calibration tests.',
+      accent: 5
+    },
+    perm_calibration_report_approve: {
+      description: 'Approve pending calibration reports.',
+      accent: 6
+    },
+    perm_calibration: {
+      description: 'Access calibration functions.',
+      accent: 5
+    }
+  };
+
   let permissionCards = [];
+  let selectedCardKeys = [];
   let membersCache = [];
   let currentUser = null;
   let pendingDeleteId = null;
@@ -46,15 +111,46 @@
     return window.RLEPermissions && window.RLEPermissions.canManageProfiles(currentUser);
   }
 
-  function renderCardsCheckboxes(selected) {
+  function enrichCard(card, index) {
+    const meta = CARD_META[card.key] || {};
+    return {
+      key: card.key,
+      label: card.label || card.key,
+      description: card.description || meta.description || 'Select or clear this functionality.',
+      accent: card.accent != null ? Number(card.accent) : (meta.accent != null ? meta.accent : (index % 12))
+    };
+  }
+
+  function renderPermissionCards() {
     if (!cardsContainer) return;
-    const selectedSet = new Set(selected || []);
-    cardsContainer.innerHTML = permissionCards.map((card) => `
-      <label class="checkbox-inline">
-        <input type="checkbox" name="permCard" value="${escapeHtml(card.key)}" ${selectedSet.has(card.key) ? 'checked' : ''}>
-        <span>${escapeHtml(card.label || card.key)}</span>
-      </label>
-    `).join('');
+    const selectedSet = new Set(selectedCardKeys || []);
+    cardsContainer.innerHTML = '';
+
+    permissionCards.forEach((raw, index) => {
+      const card = enrichCard(raw, index);
+      const selected = selectedSet.has(card.key);
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = `permission-card${selected ? ` is-selected permission-card--accent-${card.accent}` : ''}`;
+      el.dataset.featureKey = card.key;
+      el.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      el.title = 'Select or clear this functionality';
+      el.innerHTML = `
+        <div class="permission-card-title">${escapeHtml(card.label)}</div>
+        <div class="permission-card-desc">${escapeHtml(card.description)}</div>
+        <div class="permission-card-state">${selected ? 'Selected' : 'Not selected'}</div>
+      `;
+      el.addEventListener('click', () => togglePermissionCard(card.key));
+      cardsContainer.appendChild(el);
+    });
+  }
+
+  function togglePermissionCard(featureKey) {
+    if (!featureKey) return;
+    const index = selectedCardKeys.indexOf(featureKey);
+    if (index === -1) selectedCardKeys.push(featureKey);
+    else selectedCardKeys.splice(index, 1);
+    renderPermissionCards();
   }
 
   function openEditModal(member) {
@@ -67,10 +163,10 @@
     document.querySelector('#profile-edit-username').disabled = Boolean(member);
     document.querySelector('#profile-edit-password').value = '';
     document.querySelector('#profile-edit-role').value = member ? (member.role || 'operator') : 'operator';
-    const cards = member && member.featureOverrides && Array.isArray(member.featureOverrides.allow)
-      ? member.featureOverrides.allow
+    selectedCardKeys = member && member.featureOverrides && Array.isArray(member.featureOverrides.allow)
+      ? member.featureOverrides.allow.slice()
       : [];
-    renderCardsCheckboxes(cards);
+    renderPermissionCards();
     const cardsWrap = document.querySelector('#profile-edit-cards-wrap');
     if (cardsWrap) cardsWrap.hidden = !window.RLEPermissions.canAddUsers(currentUser);
     setEditStatus('');
@@ -166,9 +262,12 @@
     }
 
     if (window.RLEPermissions.canAddUsers(currentUser)) {
-      const selectedCards = Array.from(document.querySelectorAll('#profile-edit-cards input:checked'))
-        .map((el) => el.value);
-      payload.featureOverrides = { allow: selectedCards, deny: [] };
+      const cardsWrap = document.querySelector('#profile-edit-cards-wrap');
+      if (cardsWrap && !cardsWrap.hidden && !selectedCardKeys.length) {
+        setEditStatus('Select at least one permission card.', 'error');
+        return;
+      }
+      payload.featureOverrides = { allow: selectedCardKeys.slice(), deny: [] };
     }
 
     setEditStatus('Saving…');

@@ -1,6 +1,6 @@
 {
   "name": "rle-desktop-client",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "RLE Client — desktop app for connecting to RLE kiosk instruments over HTTP and WebSocket.",
   "author": "Raise Lab Equipment",
   "license": "SEE LICENSE IN legal/EULA.txt",

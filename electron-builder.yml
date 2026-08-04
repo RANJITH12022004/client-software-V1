@@ -37,7 +37,7 @@ nsis:
   displayLanguageSelector: false
   runAfterFinish: true
   deleteAppDataOnUninstall: false
-  artifactName: RLE-Client-Setup-${version}.${ext}
+  artifactName: RLE-Client-Setup-V.${version}.${ext}
 
 mac:
   target:
