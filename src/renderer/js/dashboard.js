@@ -512,8 +512,15 @@
     }
 
     const parts = [];
-    if (result.data.reports && result.data.reports.message) {
-      parts.push(result.data.reports.message);
+    if (result.data.reports) {
+      const reportsMsg = result.data.reports.message
+        || (result.data.reports.downloaded
+          ? `Saved ${result.data.reports.downloaded} report PDF(s).`
+          : '');
+      if (reportsMsg) parts.push(reportsMsg);
+      if (Array.isArray(result.data.reports.errors) && result.data.reports.errors.length && !result.data.reports.downloaded) {
+        parts.push(result.data.reports.errors.slice(0, 2).join(' '));
+      }
     }
     if (result.data.audit && result.data.audit.message) {
       parts.push(result.data.audit.message);
@@ -729,7 +736,12 @@
     const blob = new Blob([bytes], { type: 'application/pdf' });
     previewBlobUrl = URL.createObjectURL(blob);
     reportPreviewFrame.src = previewBlobUrl;
-    setStatus('Report preview ready.', 'success');
+    setStatus(
+      result.data && result.data.openedExternally
+        ? 'Report opened in your PDF viewer.'
+        : 'Report preview ready.',
+      'success'
+    );
   }
 
   function closeReportPreview() {

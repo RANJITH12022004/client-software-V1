@@ -95,6 +95,7 @@ async function syncReports(client, device, syncStore, { manual = false } = {}) {
   for (const report of pending) {
     const id = String(report.id ?? report.report_id);
     const pdfResult = await client.request(reportPdfEndpoint(id), {
+      query: { purpose: 'sync' },
       responseType: 'arrayBuffer',
       timeoutMs: 120000
     });

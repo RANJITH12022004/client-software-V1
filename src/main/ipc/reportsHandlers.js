@@ -1,6 +1,7 @@
 const fs = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
-const { ipcMain } = require('electron');
+const { ipcMain, shell } = require('electron');
 const { DESKTOP_API, IPC_CHANNELS } = require('../../shared/constants');
 const { getActiveClient } = require('./deviceHandlers');
 const { deviceReportsDir, ensureDeviceSubdirs } = require('../services/savePaths');
@@ -37,6 +38,14 @@ function emitZipProgress(event, payload) {
   }
 }
 
+async function fetchReportPdf(client, reportId, purpose) {
+  return client.request(reportPdfEndpoint(reportId), {
+    query: { purpose: purpose || 'download' },
+    responseType: 'arrayBuffer',
+    timeoutMs: 180000
+  });
+}
+
 function registerReportsHandlers() {
   ipcMain.handle(IPC_CHANNELS.REPORTS_LIST, async (_event, filters) => {
     try {
@@ -50,18 +59,31 @@ function registerReportsHandlers() {
   ipcMain.handle(IPC_CHANNELS.REPORTS_PDF_GET, async (_event, reportId) => {
     try {
       const { client } = await getActiveClient();
-      const result = await client.request(reportPdfEndpoint(reportId), {
-        responseType: 'arrayBuffer',
-        timeoutMs: 180000
-      });
+      const result = await fetchReportPdf(client, reportId, 'view');
 
       if (!result.ok) {
         return result;
       }
 
+      const buffer = toBuffer(result.data);
+      if (!buffer.length || buffer.slice(0, 4).toString() !== '%PDF') {
+        return { ok: false, error: 'The machine returned an invalid report PDF.' };
+      }
+
+      // Electron <embed> PDF preview is unreliable; also open in the OS viewer.
+      const tempPath = path.join(os.tmpdir(), `rle-report-${reportId}-${Date.now()}.pdf`);
+      await fs.writeFile(tempPath, buffer);
+      try {
+        await shell.openPath(tempPath);
+      } catch (_error) {
+        // keep in-app base64 preview as fallback
+      }
+
       return success({
-        base64: toBuffer(result.data).toString('base64'),
-        mimeType: 'application/pdf'
+        base64: buffer.toString('base64'),
+        mimeType: 'application/pdf',
+        openedExternally: true,
+        tempPath
       });
     } catch (error) {
       return failure(error);
@@ -77,10 +99,7 @@ function registerReportsHandlers() {
         throw new Error('Choose a save folder before exporting reports.');
       }
 
-      const result = await client.request(reportPdfEndpoint(reportId), {
-        responseType: 'arrayBuffer',
-        timeoutMs: 180000
-      });
+      const result = await fetchReportPdf(client, reportId, 'download');
       if (!result.ok) {
         return result;
       }
@@ -98,10 +117,7 @@ function registerReportsHandlers() {
   ipcMain.handle(IPC_CHANNELS.REPORTS_PDF_DOWNLOAD, async (event, reportId) => {
     try {
       const { client } = await getActiveClient();
-      const result = await client.request(reportPdfEndpoint(reportId), {
-        responseType: 'arrayBuffer',
-        timeoutMs: 180000
-      });
+      const result = await fetchReportPdf(client, reportId, 'download');
 
       if (!result.ok) {
         return result;
@@ -174,10 +190,7 @@ function registerReportsHandlers() {
           phase: 'download'
         });
 
-        const result = await client.request(reportPdfEndpoint(reportId), {
-          responseType: 'arrayBuffer',
-          timeoutMs: 180000
-        });
+        const result = await fetchReportPdf(client, reportId, 'zip');
 
         if (!result.ok) {
           errors.push(`Report ${reportId}: ${result.error || 'download failed'}`);
