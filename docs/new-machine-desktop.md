@@ -28,12 +28,10 @@ python scripts/deploy_desktop_api_pi.py --host <PI_IP> --app-name "Product Title
 
 Examples:
 
-- Friability: `--host 192.168.1.100 --app-name "Friability Tester"`
-- Tap Density: `--host 192.168.1.33 --app-name "Tap Density"`
-- Tablet Hardness: `--host 100.108.222.67 --app-name "Tablet Hardness Tester"`
-  (also reachable on LAN as `192.168.1.100` when on the same subnet)
-- Tablet Disintegration: `--host 100.108.165.100 --app-name "Tablet Disintegration Tester"`
-  (LAN also `192.168.1.60` / `192.168.1.32` when on the same subnet)
+- Sieve Shaker CFR: `--host 100.108.165.100 --app-name "Sieve Shaker CFR"`
+- Leak Test: `--host 100.85.166.118 --app-name "Leak Test"`
+- Tap Density: `--host 100.108.222.67 --app-name "Tap Density"`
+
 The script uploads `desktop_api/`, installs the multi-product `bridge.py`, writes `desktop_app_name`, restarts `kiosk-bridge`, and checks LAN health.
 
 ## Desktop client
@@ -46,10 +44,7 @@ The script uploads `desktop_api/`, installs the multi-product `bridge.py`, write
 ## Verification
 
 ```bash
-python scripts/deploy_desktop_api_pi.py --host 100.108.222.67 --app-name "Tablet Hardness Tester"
-python scripts/verify_hardness_desktop.py
-python scripts/deploy_desktop_api_pi.py --host 100.108.165.100 --app-name "Tablet Disintegration Tester"
-python scripts/verify_disintegration_desktop.py
+python scripts/verify_three_devices_desktop.py
 # or health only:
 curl -s http://<PI_IP>:5000/api/desktop/v1/health
 ```
