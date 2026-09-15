@@ -31,8 +31,11 @@ async function executeSync({ mode = 'all' } = {}) {
   });
 
   return {
-    ok: true,
-    data: result
+    ok: result.ok !== false,
+    data: result,
+    error: result.ok === false
+      ? (result.reports && result.reports.message) || 'Sync completed with report errors.'
+      : undefined
   };
 }
 

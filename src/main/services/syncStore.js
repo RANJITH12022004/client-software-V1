@@ -71,6 +71,18 @@ class SyncStore {
     return this.setDeviceState(deviceId, { downloadedReportIds: [...ids] });
   }
 
+  async clearReportDownloads(deviceId) {
+    return this.setDeviceState(deviceId, { downloadedReportIds: [] });
+  }
+
+  async resetDeviceSyncState(deviceId) {
+    return this.setDeviceState(deviceId, {
+      downloadedReportIds: [],
+      lastAuditTimestampMs: null,
+      lastSyncAt: null
+    });
+  }
+
   async setLastAuditTimestamp(deviceId, timestampMs) {
     return this.setDeviceState(deviceId, { lastAuditTimestampMs: Number(timestampMs) || null });
   }

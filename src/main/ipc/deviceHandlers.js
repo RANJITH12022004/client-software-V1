@@ -2,6 +2,7 @@ const { ipcMain, BrowserWindow } = require('electron');
 const { IPC_CHANNELS } = require('../../shared/constants');
 const { DeviceStore } = require('../services/deviceStore');
 const { TokenStore } = require('../services/tokenStore');
+const { SyncStore } = require('../services/syncStore');
 const { KioskApiClient } = require('../services/kioskApiClient');
 const { DeviceMonitor } = require('../services/deviceMonitor');
 const { probeDeviceHealth } = require('../services/deviceHealth');
@@ -9,6 +10,7 @@ const { DESKTOP_API } = require('../../shared/constants');
 
 const deviceStore = new DeviceStore();
 const tokenStore = new TokenStore();
+const syncStore = new SyncStore();
 const deviceMonitor = new DeviceMonitor(deviceStore);
 
 function success(data) {
@@ -95,13 +97,25 @@ function registerDeviceHandlers(mainWindow) {
       const saved = await deviceStore.saveDevice(device);
 
       // IP / baseUrl change invalidates the previous machine session token.
+      // Save-folder / nickname changes also invalidate report download tracking so
+      // auto-backup re-fills the new reports folder instead of skipping by id.
       if (existing) {
         const oldIp = String(existing.ip || '').trim();
         const newIp = String(saved.ip || '').trim();
         const oldBase = String(existing.baseUrl || '').trim().replace(/\/$/, '');
         const newBase = String(saved.baseUrl || '').trim().replace(/\/$/, '');
-        if (oldIp !== newIp || oldBase !== newBase) {
+        const oldSave = String(existing.savePath || '').trim();
+        const newSave = String(saved.savePath || '').trim();
+        const oldNick = String(existing.nickname || existing.name || '').trim();
+        const newNick = String(saved.nickname || saved.name || '').trim();
+        const identityChanged = oldIp !== newIp || oldBase !== newBase;
+        const pathChanged = oldSave !== newSave || oldNick !== newNick;
+
+        if (identityChanged) {
           await tokenStore.clearToken(saved.id);
+          await syncStore.resetDeviceSyncState(saved.id);
+        } else if (pathChanged) {
+          await syncStore.clearReportDownloads(saved.id);
         }
       }
 
@@ -120,6 +134,7 @@ function registerDeviceHandlers(mainWindow) {
   ipcMain.handle(IPC_CHANNELS.DEVICE_REMOVE, async (_event, deviceId) => {
     try {
       await tokenStore.clearToken(deviceId);
+      await syncStore.resetDeviceSyncState(deviceId);
       const result = await deviceStore.removeDevice(deviceId);
       await deviceMonitor.pollAll();
       return success(result);

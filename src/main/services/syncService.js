@@ -50,6 +50,16 @@ async function requestWithFallback(client, desktopPath, machinePath, options = {
   return { ...machine, api: 'machine' };
 }
 
+async function reportPdfExists(reportsDir, reportId) {
+  try {
+    const filePath = path.join(reportsDir, `report-${reportId}.pdf`);
+    const stat = await fs.stat(filePath);
+    return stat.isFile() && stat.size > 0;
+  } catch (_error) {
+    return false;
+  }
+}
+
 async function syncReports(client, device, syncStore, { manual = false } = {}) {
   const deviceId = device.id;
   const state = await syncStore.getDeviceState(deviceId);
@@ -67,15 +77,27 @@ async function syncReports(client, device, syncStore, { manual = false } = {}) {
   }
 
   const reports = asReports(listResult.data);
-  const pending = reports.filter((report) => {
+  await ensureDeviceSubdirs(device);
+  const reportsDir = deviceReportsDir(device);
+
+  // Re-download when the PDF is missing on disk even if the sync store
+  // already marked the report id (common after save-folder / nickname changes).
+  const pending = [];
+  const skippedExisting = [];
+  for (const report of reports) {
     const id = String(report.id ?? report.report_id ?? '');
-    return id && !downloaded.has(id);
-  });
+    if (!id) continue;
+    if (downloaded.has(id) && await reportPdfExists(reportsDir, id)) {
+      skippedExisting.push(id);
+      continue;
+    }
+    pending.push(report);
+  }
 
   if (!pending.length) {
     return {
       downloaded: 0,
-      skipped: reports.length,
+      skipped: skippedExisting.length,
       message: manual ? 'All reports are already saved on this computer.' : 'No new reports.'
     };
   }
@@ -87,8 +109,6 @@ async function syncReports(client, device, syncStore, { manual = false } = {}) {
     );
   }
 
-  await ensureDeviceSubdirs(device);
-  const reportsDir = deviceReportsDir(device);
   let saved = 0;
   const errors = [];
 
@@ -105,21 +125,34 @@ async function syncReports(client, device, syncStore, { manual = false } = {}) {
       continue;
     }
 
+    if (!Buffer.isBuffer(pdfResult.data) || pdfResult.data.length < 5 || pdfResult.data.subarray(0, 4).toString('utf8') !== '%PDF') {
+      errors.push(`Report ${id}: machine did not return a PDF file`);
+      continue;
+    }
+
     const filePath = path.join(reportsDir, `report-${id}.pdf`);
     await fs.writeFile(filePath, pdfResult.data);
     await syncStore.markReportDownloaded(deviceId, id);
     saved += 1;
   }
 
+  if (!saved && errors.length) {
+    throw new Error(
+      errors.length > 3
+        ? `${errors.length} reports failed PDF download (e.g. ${errors[0]}). Check the machine logs.`
+        : errors.join(' ')
+    );
+  }
+
   return {
     downloaded: saved,
-    skipped: reports.length - pending.length,
+    skipped: skippedExisting.length,
     errors,
     message: saved
       ? `Saved ${saved} new report${saved === 1 ? '' : 's'} to ${reportsDir}.`
-      : (errors.length > 3
-        ? `${errors.length} reports failed PDF download (e.g. ${errors[0]}). Check the machine logs.`
-        : errors.join(' '))
+      : (errors.length
+        ? errors.join(' ')
+        : (manual ? 'All reports are already saved on this computer.' : 'No new reports.'))
   };
 }
 
@@ -203,9 +236,22 @@ async function runDeviceSync({ client, device, syncStore, mode = 'all' }) {
   };
 
   if (mode === 'all' || mode === 'reports') {
-    result.reports = await syncReports(client, device, syncStore, {
-      manual: mode === 'reports'
-    });
+    try {
+      result.reports = await syncReports(client, device, syncStore, {
+        manual: mode === 'reports'
+      });
+    } catch (error) {
+      result.ok = false;
+      result.reports = {
+        downloaded: 0,
+        skipped: 0,
+        errors: [error.message || String(error)],
+        message: error.message || String(error)
+      };
+      if (mode === 'reports') {
+        throw error;
+      }
+    }
   }
 
   if (mode === 'all' || mode === 'audit') {
