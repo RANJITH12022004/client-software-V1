@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import paramiko
 
-HOSTS = ["100.108.165.100", "100.85.166.118", "100.108.222.67"]
+HOSTS = ["100.90.98.85", "100.108.165.100", "100.85.166.118", "100.108.222.67"]
 USER = "rle"
 PASSWORD = "rle"
 

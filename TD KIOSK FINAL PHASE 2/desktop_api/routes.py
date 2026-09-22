@@ -433,11 +433,17 @@ def create_blueprint(kiosk):
         try:
             # Large exports can take several minutes on Pi hardware.
             per_chunk_timeout = 240.0 if len(html_chunks) > 1 else 180.0
-            pdf_generator.render_html_chunks_to_pdf(
-                html_chunks,
-                tmp,
-                timeout_sec=per_chunk_timeout,
-            )
+            render_chunks = getattr(pdf_generator, "render_html_chunks_to_pdf", None)
+            if callable(render_chunks):
+                render_chunks(
+                    html_chunks,
+                    tmp,
+                    timeout_sec=per_chunk_timeout,
+                )
+            else:
+                # Older product trees only expose single-doc render.
+                joined = "\n".join(html_chunks)
+                pdf_generator.render_html_to_pdf(joined, tmp, timeout_sec=per_chunk_timeout)
             uname = user.get("username") or user.get("name") or "--"
             role = user.get("role") or "--"
             log_major(

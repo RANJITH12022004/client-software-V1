@@ -28,6 +28,7 @@ python scripts/deploy_desktop_api_pi.py --host <PI_IP> --app-name "Product Title
 
 Examples:
 
+- Dissolution Auto Sampler: `--host 100.90.98.85 --app-name "Dissolution Auto Sampler"`
 - Sieve Shaker CFR: `--host 100.108.165.100 --app-name "Sieve Shaker CFR"`
 - Leak Test: `--host 100.85.166.118 --app-name "Leak Test"`
 - Tap Density: `--host 100.108.222.67 --app-name "Tap Density"`

@@ -12,6 +12,10 @@ import paramiko
 
 DEVICES = [
     {
+        "host": "100.90.98.85",
+        "expect_app": "Dissolution Auto Sampler",
+    },
+    {
         "host": "100.108.165.100",
         "expect_app": "Sieve Shaker CFR",
     },
